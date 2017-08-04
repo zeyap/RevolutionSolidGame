@@ -15,7 +15,9 @@ public class Polygon : MonoBehaviour {
 	public Polygon(int newIndex,Vector3 newInitialPos){
 		index = newIndex;
 		initialPos = newInitialPos;
+
 		gameObject = GameObject.Find ("poly" + index.ToString());
+		gameObject.transform.position = initialPos;
 
 		if (gameObject.GetComponent<MeshRenderer>().material !=null) {
 			mat = gameObject.GetComponent<MeshRenderer>().material;

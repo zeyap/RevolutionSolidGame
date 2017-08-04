@@ -7,17 +7,19 @@ public class PolygonControl : MonoBehaviour {
 	delegate void PolygonBehaviour(int polygonIndex);
 	PolygonBehaviour polygonBehaviour;
 	public static List<Polygon> polygons;
+	private Vector3 midPos;
 	// Use this for initialization
+	void Awake(){
+		midPos = GameObject.Find ("middle").transform.position;
+	}
 	void Start () {
 		polygons = new List<Polygon> ();//constructor
-		Vector3 newPos=new Vector3(0.2f,-1.1f,-0.4f);
-		polygons.Add(new Polygon(0,newPos));
 
-		polygonBehaviour += FadeInOrOut;
+		StartCoroutine("AddPolygon");
+
+		//polygonBehaviour += FadeInOrOut;
 		polygonBehaviour += Rotate;
 		polygonBehaviour += Move;
-
-		//StartCoroutine("FadeInOrOut");
 
 	}
 	
@@ -25,17 +27,34 @@ public class PolygonControl : MonoBehaviour {
 	void Update () {
 		if (polygonBehaviour != null) {
 			for (int i = 0; i < polygons.Count; i++) {
-				polygonBehaviour (i);
+				if (polygons [i].isKilled == false) {
+					polygonBehaviour (i);
+				}
+				FadeInOrOut (i);
 			}
 		}
 	}
 
+	IEnumerator AddPolygon(){
+		polygons.Add(new Polygon(0,new Vector3(10.0f,-5.0f,0)));
+		yield return new WaitForSeconds (2);
+		polygons.Add(new Polygon(1,new Vector3(-10.0f,-5.0f,0)));
+		yield return new WaitForSeconds (2);
+		polygons.Add(new Polygon(2,new Vector3(10.0f,5.0f,0)));
+		yield return new WaitForSeconds (2);
+		polygons.Add(new Polygon(3,new Vector3(-10.0f,5.0f,0)));
+		yield return new WaitForSeconds (2);
+
+	}
+
 	void Rotate(int polygonIndex){
-		polygons [polygonIndex].gameObject.transform.Rotate (1.5f,1.5f,1.5f);
+		polygons [polygonIndex].gameObject.transform.Rotate (0.5f,0.5f,0.5f);
 	}
 
 	void Move(int polygonIndex){
-		polygons [polygonIndex].gameObject.transform.position+=new Vector3(-0.01f,0,0);
+		if (polygons [polygonIndex].gameObject.transform.position != midPos) {
+			polygons [polygonIndex].gameObject.transform.position=Vector3.MoveTowards(polygons [polygonIndex].gameObject.transform.position,midPos,Time.deltaTime*0.3f);
+		}
 	}
 
 	void FadeInOrOut(int polygonIndex){
@@ -46,7 +65,6 @@ public class PolygonControl : MonoBehaviour {
 		if (polygons [polygonIndex].isKilled) {
 			polygons [polygonIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(polygons [polygonIndex].alphaScale-=0.2f,0.0f,1.0f));
 			if (polygons [polygonIndex].alphaScale == 0) {
-				//destroy??
 			}
 		}
 	}
