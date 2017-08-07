@@ -10,16 +10,22 @@ public class AxisDrawing: MonoBehaviour {
 	private int vertexCount;
 	public GameObject linePrefab;
 
-	List<Vector3> linePath;
+	protected List<Vector3> linePath;
 
 	private float alphaScale;
 
 	private Vector3 mousePos;
-	private float wx, wy;
+	protected float wx, wy;
+	protected float sectionScale=0.2f;//depend on the gameObject empty
 
-	List<Section> sections;
+	protected List<Section> sections;
 
 	Text text;
+
+	/*
+	public delegate int Grade(List<Vector3> path);
+	public static Grade grade;
+	*/
 
 	void Awake(){
 		text = GameObject.Find ("Text").GetComponent<Text> ();
@@ -28,26 +34,31 @@ public class AxisDrawing: MonoBehaviour {
 	void Start () {
 		wx = Camera.main.pixelRect.center.x;
 		wy = Camera.main.pixelRect.center.y;
+
 		isLineInstantiated = false;
-
-		sections = new List<Section> ();//constructor
-		sections.Add(new Section(0,new Vector3(330,1,0),new Vector3(330,-1,0)));
-		sections.Add(new Section(1,new Vector3(372,1,0),new Vector3(372,-1,0)));
-		sections.Add(new Section(2,new Vector3(242,325,0),new Vector3(393,176,0)));
-		sections.Add(new Section(3,new Vector3(328,1,0),new Vector3(328,-1,0)));
-
+		InitSections ();
 		linePath = new List<Vector3> ();
 
 		StartCoroutine("RecordLinePath");
+		/*
+		grade += LeastSquareMethod;*/
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		if (wx != Camera.main.pixelRect.center.x || wy != Camera.main.pixelRect.center.y) {
+			wx = Camera.main.pixelRect.center.x;
+			wy = Camera.main.pixelRect.center.y;
+		}
 		mousePos = Input.mousePosition;
+		mousePos.x =mousePos.x- wx;
+		mousePos.y =mousePos.y- wy;
+
 		if (Input.GetMouseButtonDown (0)) {
 			//destroy existing one and instantiate new
 			if (isLineInstantiated) {
-				DisplayScore (Grading (linePath));
+				//DisplayScore (grade(linePath));
+				DisplayScore (Grading(linePath));
 				DestroyAxis ();
 				linePath.Clear ();
 			}
@@ -81,7 +92,7 @@ public class AxisDrawing: MonoBehaviour {
 		//if (mousePos.x-wx && mousePos.y-wy) 
 		vertexCount++;
 		line.SetVertexCount (vertexCount);
-		line.SetPosition (vertexCount - 1, Camera.main.ScreenToWorldPoint (new Vector3 (mousePos.x, mousePos.y, 0)));
+		line.SetPosition (vertexCount - 1, Camera.main.ScreenToWorldPoint (new Vector3 (mousePos.x+wx, mousePos.y+wy, 0)));
 	}
 
 	void AxisFadeOut(){
@@ -90,65 +101,113 @@ public class AxisDrawing: MonoBehaviour {
 
 	IEnumerator RecordLinePath(){
 		while (true) {
-			if (Mathf.Abs (mousePos.x - wx) < 100 && Mathf.Abs (mousePos.y - wy) < 100) {
-				//Debug.Log (mousePos.x);
-				//Debug.Log (mousePos.y);
+			if (Mathf.Abs (mousePos.x) < 200 && Mathf.Abs (mousePos.y) < 200) {
 				linePath.Add (mousePos);
 			}
-			yield return new WaitForSeconds (0.1f);
+			yield return new WaitForSeconds (0.01f);
 		}
 	}
 
-	int Grading (List<Vector3> path){
-		//panel position 0-UR,1-UL,2-BL,3-BR
-		Vector2 offset=new Vector2(0,0);
-		int panelIndex=0;//sectionIndex
-		float avgSqrsSum=999.0f;
-		while(panelIndex<4){
-			if (PolygonControl.polygons [panelIndex].isKilled == false) {
-				Debug.Log (panelIndex);
-				if (panelIndex == 0) {
-					offset.x = 50;
-					offset.y = 50;
-				} else if (panelIndex == 1) {
-					offset.x = -50;
-					offset.y = 50;
-				} else if (panelIndex == 2) {
-					offset.x = -50;
-					offset.y = -50;
-				} else {//==3
-					offset.x = 50;
-					offset.y = -50;
-				}
-				float x1, y1, x2, y2;
-				x1 = sections [panelIndex].point1.x + offset.x;
-				y1 = sections [panelIndex].point1.y + offset.y;
-				x2 = sections [panelIndex].point2.x + offset.x;
-				y2 = sections [panelIndex].point2.y + offset.y;
-				for (int i = 0; i < path.Count; i++) {
-					avgSqrsSum += Mathf.Pow ((y2 - y1) * path [i].x + (x1 - x2) * path [i].y + (x2 * y1 - x1 * y2), 2) / ((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
-					//Debug.Log (Mathf.Pow((y2-y1)*path[i].x+(x1-x2)*path[i].y+(x2*y1-x1*y2),2)/((y2-y1)*(y2-y1)+(x2-x1)*(x2-x1)));
-				}
-				avgSqrsSum /= path.Count;
-				Debug.Log (avgSqrsSum);//100 200
-				if (avgSqrsSum <= 250) {
-					PolygonControl.polygons [panelIndex].isKilled = true;
-					break;
-				} else {
-					panelIndex++;
-				}
-			} else {
-				panelIndex++;
+	void DisplayScore(int bestMatchCand){
+		switch(bestMatchCand) {
+		case 0:
+			text.text = "fantastic!";
+			break;
+		case 2:
+			text.text = "left edge";
+			break;
+		case 4:
+			text.text = "right edge";
+			break;
+		case 6:
+			text.text = "bottom edge";
+			break;
+		case 8:
+			text.text = "top edge";
+			break;
+		case 10:
+			text.text = "diagonal /";
+			break;
+		case 12:
+			text.text = "diagonal \\";
+			break;
+		default:
+			text.text = "try again!";
+			break;
+		}
+	}
+
+	void InitSections(){
+		sections = new List<Section> ();//constructor
+		sections.Add(new Section(0,new Vector3(120,0,0),new Vector3(120,1,0)));//bottomleft be origin
+		sections.Add(new Section(1,new Vector3(400,0,0),new Vector3(400,1,0)));
+		sections.Add(new Section(2,new Vector3(155,444,0),new Vector3(497,180,0)));
+		sections.Add(new Section(3,new Vector3(115,0,0),new Vector3(115,1,0)));
+	}
+
+
+	//Grading methods
+
+	public int BestMatchCandidate (List<Vector3> path,int panelIndex){
+		int bestMatchCandidateNo=-1;
+		float tempSquare;
+		float minSquare=9999;
+		for (int i = 0; i <= sections [panelIndex].axisCandVert.Count - 1; i += 2) {
+			tempSquare = LeastSquare (path, panelIndex, i);
+			//Debug.Log (i);
+			//Debug.Log (tempSquare);
+			if (tempSquare < minSquare) {
+				minSquare = tempSquare;
+				bestMatchCandidateNo = i;
 			}
 		}
-		return panelIndex;
+		return bestMatchCandidateNo;
 	}
 
-	void DisplayScore(int panelIndex){
-		if (panelIndex <=3) {
-			text.text = "fantastic!";
-		} else{
-			text.text="let's try again..";
+	float LeastSquare(List<Vector3> path,int panelIndex,int candNo){
+		float avgSqrsSum=0;
+		float x1, y1, x2, y2;
+		x1 = sections [panelIndex].axisCandVert[candNo].x*sectionScale + sections[panelIndex].image.transform.position.x-wx;
+		y1 = sections [panelIndex].axisCandVert[candNo].y*sectionScale + sections[panelIndex].image.transform.position.y-wy;
+		x2 = sections [panelIndex].axisCandVert[candNo+1].x*sectionScale + sections[panelIndex].image.transform.position.x-wx;
+		y2 = sections [panelIndex].axisCandVert[candNo+1].y*sectionScale + sections[panelIndex].image.transform.position.y-wy;
+		for (int i = 0; i < path.Count; i++) {
+			avgSqrsSum += Mathf.Pow ((y2 - y1) * path [i].x + (x1 - x2) * path [i].y + (x2 * y1 - x1 * y2), 2) / ((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
 		}
+		avgSqrsSum /= path.Count;
+		return avgSqrsSum;
+	}
+
+	const float thres=0.0f;
+	public int Grading(List<Vector3> path){
+		//calculate start/end vertices & slope
+
+		Vector3 start=path[0];
+		Vector3 end=path[path.Count-1];
+		Debug.Log (Vector3.Distance (start, end));
+		if (Vector3.Distance (start, end) < 50) {
+			return -1;
+		}
+
+		//float slope=(end.y-start.y)/(end.x-start.x);
+
+		int panelIndex=0;//sectionIndex
+		//panel position 0-UR,1-UL,2-BL,3-BR
+		if (end.x > -thres && end.y > -thres) {
+			panelIndex = 0;
+		} else if (end.x > -thres && end.y < thres) {
+			panelIndex = 3;
+		}else if (end.x < thres && end.y > -thres) {
+			panelIndex = 1;
+		}else if (end.x < thres && end.y < thres) {
+			panelIndex = 2;
+		}
+		//Debug.Log (panelIndex);
+		if (PolygonControl.polygons [panelIndex].isKilled == false) {
+			if (BestMatchCandidate (path, panelIndex) == 0) {
+				PolygonControl.polygons [panelIndex].isKilled = true;
+			} 
+		}
+		return BestMatchCandidate (path, panelIndex);
 	}
 }
