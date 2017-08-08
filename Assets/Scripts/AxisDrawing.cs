@@ -172,19 +172,28 @@ public class AxisDrawing: MonoBehaviour {
 	}
 
 	public int BestMatchCandidate (List<Vector3> path,int panelIndex){
-		int bestMatchCandidateNo=-1;//refer to the correct one
+		int bestMatchCandidateNo=-2;//refer to the correct one
 		int tempConvolution=0;
 
 		int[] pathKernel =new int[36];
 		Pixel2Kernel (path,panelIndex,pathKernel);
 
 		int maxConvolution = Convolution (pathKernel, sections [panelIndex].axisKernel);
+		if (maxConvolution >= 3) {
+			bestMatchCandidateNo = -1;
+		}
+		Debug.Log (-1);
+		Debug.Log (maxConvolution);
 
 		for (int i = 0; i < 6; i ++) {
 			tempConvolution = Convolution(pathKernel,candKernels[i]);
+			Debug.Log (i);
+			Debug.Log (tempConvolution);
 			if (tempConvolution > maxConvolution) {
 				maxConvolution = tempConvolution;
+				if (maxConvolution >= 3) {
 				bestMatchCandidateNo = i;
+				}
 			}
 		}
 		return bestMatchCandidateNo;
