@@ -6,44 +6,35 @@ using UnityEngine.UI;
 public class Section : MonoBehaviour {
 	
 	public Image image;
-	const float imgRes=275;
+	public static float imgRes=550;
 	//points on the correct axis
 	//in pixel relative to original 550x550 image //increment from leftbottom
 
-	public List<Vector3> axisCandVert;
+	/*
+	public List<Vector3> axisVert;
+	*/
+
+	public int[] axisKernel;
 
 	//candidate 
 
-	public Section(int newIndex, Vector3 newPoint1, Vector3 newPoint2){
+	public Section(int newIndex, int[]newAxisKernel){
 		image = GameObject.Find ("section"+newIndex.ToString()).GetComponent<Image>();
-		axisCandVert=new List<Vector3> ();
-		AddVertex (axisCandVert,newPoint1);
-		AddVertex (axisCandVert,newPoint2);//first two are right axis
-
-		//later read from text files
-		AddVertex (axisCandVert,new Vector3(9,0,0));//left edge
-		AddVertex (axisCandVert,new Vector3(9,1,0));
-
-		AddVertex (axisCandVert,new Vector3(488,0,0));//right edge
-		AddVertex (axisCandVert,new Vector3(488,1,0));
-
-		AddVertex (axisCandVert,new Vector3(0,10,0));//bottom edge
-		AddVertex (axisCandVert,new Vector3(1,10,0));
-
-		AddVertex (axisCandVert,new Vector3(0,540,0));//top edge
-		AddVertex (axisCandVert,new Vector3(1,540,0));
-
-		AddVertex (axisCandVert,new Vector3(9,10,0));//diagnonal/
-		AddVertex (axisCandVert,new Vector3(488,540,0));
-
-		AddVertex (axisCandVert,new Vector3(488,10,0));//diagnonal\
-		AddVertex (axisCandVert,new Vector3(9,540,0));
+		/*
+		axisVert=new List<Vector3> ();
+		AddVertex (axisVert,newPoint1);
+		AddVertex (axisVert,newPoint2);//first two are right axis
+		*/
+		axisKernel= newAxisKernel;
 	}
 
+	/*
 	void AddVertex(List<Vector3> vertexList, Vector3 newPoint){
 		Vector3 temp=newPoint;
-		temp.x -= imgRes;
-		temp.y -= imgRes;
+		temp.x -= imgRes/2;
+		temp.y -= imgRes/2;
 		vertexList.Add (temp);
 	}
+	*/
+
 }
