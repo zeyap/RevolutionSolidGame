@@ -12,8 +12,11 @@ public class Polygon : MonoBehaviour {
 
 	public bool isKilled;
 
-	public Polygon(int newIndex,Vector3 newInitialPos){
+	public int panelIndex;
+
+	public Polygon(int newIndex,int newPanelIndex,Vector3 newInitialPos){
 		index = newIndex;
+		panelIndex = newPanelIndex;
 		initialPos = newInitialPos;
 
 		gameObject = GameObject.Find ("poly" + index.ToString());
@@ -33,7 +36,15 @@ public class Polygon : MonoBehaviour {
 			mat=gameObject.GetComponent<MeshRenderer>().material;
 		}
 		alphaScale = 0.0f;
+		if (panelIndex ==-1) {
+			isKilled=true;
+		}
+	}
+		
+
+	public void Recover(int panelIndex){
 		isKilled = false;
+		panelIndex = panelIndex;
 	}
 
 }

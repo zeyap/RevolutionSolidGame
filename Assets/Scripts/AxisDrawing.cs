@@ -72,7 +72,6 @@ public class AxisDrawing: MonoBehaviour {
 
 		if (Input.GetMouseButton (0)) {
 			DrawAxis ();
-			//trembling prevention(?
 		}
 
 		if (Input.GetMouseButtonUp (0)) {
@@ -93,6 +92,7 @@ public class AxisDrawing: MonoBehaviour {
 		GameObject.Destroy (line.gameObject);
 		isLineInstantiated = false;
 	}
+
 	void InitAxis(){ 
 		line = GameObject.Instantiate (linePrefab, linePrefab.transform.position, transform.rotation).GetComponent<LineRenderer> ();
 		line.SetWidth (0.05f, 0.15f);
@@ -149,13 +149,20 @@ public class AxisDrawing: MonoBehaviour {
 			break;
 		}
 	}
-		
+
+	public static Sprite[] polygonSprites=new Sprite[PolygonControl.MaxPolygonNum];
 	void InitSections(){
 		sections = new List<Section> ();//constructor
 		sections.Add(new Section(0,0));//bottomleft be origin
 		sections.Add(new Section(1,1));
 		sections.Add(new Section(2,2));
 		sections.Add(new Section(3,3));
+
+		for (int i = 0; i < PolygonControl.MaxPolygonNum; i++) {
+			polygonSprites [i] = GameObject.Find ("section"+i.ToString()).GetComponent<Image>().sprite;
+			Debug.Log (polygonSprites [i]);
+		}
+
 	}
 
 
@@ -175,11 +182,15 @@ public class AxisDrawing: MonoBehaviour {
 	}
 		
 	void InitAxisKernels(){
-		axisKernels=new int[4][];//first index refer to corresponding polygon
+		axisKernels=new int[7][];//first index refer to corresponding polygon
 		axisKernels [0]=new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0};
 		axisKernels [1] = new int[]{ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0 };
 		axisKernels [2] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
 		axisKernels [3] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+		axisKernels [4] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+		axisKernels [5] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+		axisKernels [6] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+
 	}
 
 	public int BestMatchCandidate (List<Vector3> path,int panelIndex){
@@ -190,7 +201,6 @@ public class AxisDrawing: MonoBehaviour {
 		Pixel2Kernel (path,panelIndex,pathKernel);
 
 		int k=sections [panelIndex].polygonIndex;
-		Debug.Log (k);
 		int maxConvolution = Convolution (pathKernel, axisKernels[k]);
 		if (maxConvolution >= 3) {
 			bestMatchCandidateNo = -1;
@@ -288,7 +298,7 @@ public class AxisDrawing: MonoBehaviour {
 		if (PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled == false) {
 			bestMatchCandNo = BestMatchCandidate (path, panelIndex);
 			if (bestMatchCandNo == -1) {
-				PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled = true;
+				PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled=true;
 			} 
 		}
 		return bestMatchCandNo;

@@ -10,7 +10,7 @@ public class Section : MonoBehaviour {
 	public int polygonIndex;
 
 	public static float imgRes=550;
-	public static Sprite[] polygonSprites=new Sprite[4];
+
 	public static int[] vacantPanels=new int[]{0,0,0,0};
 	//points on the correct axis
 	//in pixel relative to original 550x550 image //increment from leftbottom
@@ -25,19 +25,15 @@ public class Section : MonoBehaviour {
 		image = GameObject.Find ("section"+newPanelIndex.ToString()).GetComponent<Image>();
 		panelIndex = newPanelIndex;
 		polygonIndex = corresPolygonIndex;
-
-		polygonSprites [polygonIndex] = image.sprite;
 	}
 
 
 	public void Hide(){
-		image.gameObject.SetActive (false);
 		vacantPanels [panelIndex] = 1;//1==isVacant
-		
 	}
+
 	public void Show(){
-		image.gameObject.SetActive (true);
-		image.sprite=polygonSprites[polygonIndex];
+		image.sprite=AxisDrawing.polygonSprites[polygonIndex];
 		vacantPanels [panelIndex] = 0;
 	}
 
