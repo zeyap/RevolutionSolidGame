@@ -4,9 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Section : MonoBehaviour {
-	
+
 	public Image image;
+	public int panelIndex;
+	public int polygonIndex;
+
 	public static float imgRes=550;
+	public static Sprite[] polygonSprites=new Sprite[4];
+	public static int[] vacantPanels=new int[]{0,0,0,0};
 	//points on the correct axis
 	//in pixel relative to original 550x550 image //increment from leftbottom
 
@@ -14,27 +19,26 @@ public class Section : MonoBehaviour {
 	public List<Vector3> axisVert;
 	*/
 
-	public int[] axisKernel;
-
 	//candidate 
 
-	public Section(int newIndex, int[]newAxisKernel){
-		image = GameObject.Find ("section"+newIndex.ToString()).GetComponent<Image>();
-		/*
-		axisVert=new List<Vector3> ();
-		AddVertex (axisVert,newPoint1);
-		AddVertex (axisVert,newPoint2);//first two are right axis
-		*/
-		axisKernel= newAxisKernel;
+	public Section(int newPanelIndex,int corresPolygonIndex){
+		image = GameObject.Find ("section"+newPanelIndex.ToString()).GetComponent<Image>();
+		panelIndex = newPanelIndex;
+		polygonIndex = corresPolygonIndex;
+
+		polygonSprites [polygonIndex] = image.sprite;
 	}
 
-	/*
-	void AddVertex(List<Vector3> vertexList, Vector3 newPoint){
-		Vector3 temp=newPoint;
-		temp.x -= imgRes/2;
-		temp.y -= imgRes/2;
-		vertexList.Add (temp);
+
+	public void Hide(){
+		image.gameObject.SetActive (false);
+		vacantPanels [panelIndex] = 1;//1==isVacant
+		
 	}
-	*/
+	public void Show(){
+		image.gameObject.SetActive (true);
+		image.sprite=polygonSprites[polygonIndex];
+		vacantPanels [panelIndex] = 0;
+	}
 
 }

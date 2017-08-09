@@ -18,8 +18,9 @@ public class AxisDrawing: MonoBehaviour {
 	protected float wx, wy;
 	protected float sectionScale=0.2f;//depend on the gameObject empty
 
-	protected List<Section> sections;
+	public static List<Section> sections;
 	protected int[][] candKernels;
+	public int[][] axisKernels;
 
 	Text text;
 
@@ -30,23 +31,25 @@ public class AxisDrawing: MonoBehaviour {
 
 	void Awake(){
 		text = GameObject.Find ("Text").GetComponent<Text> ();
-	}
 
-	// Use this for initialization
-	void Start () {
 		wx = Camera.main.pixelRect.center.x;
 		wy = Camera.main.pixelRect.center.y;
 
 		isLineInstantiated = false;
 		InitSections ();
+		InitCandidateKernels ();
+		InitAxisKernels ();
 		linePath = new List<Vector3> ();
+	}
+
+	// Use this for initialization
+	void Start () {
 
 		StartCoroutine("RecordLinePath");
 		/*
 		grade += LeastSquareMethod;*/
-		InitCandidateKernels ();
-	}
 
+	}
 
 	
 	// Update is called once per frame
@@ -146,13 +149,13 @@ public class AxisDrawing: MonoBehaviour {
 			break;
 		}
 	}
-
+		
 	void InitSections(){
 		sections = new List<Section> ();//constructor
-		sections.Add(new Section(0,new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0}));//bottomleft be origin
-		sections.Add(new Section(1,new int[]{0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0}));
-		sections.Add(new Section(2,new int[]{0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,1,0, 0,0,0,1,0,0, 0,0,1,0,0,0, 0,1,0,0,0,0}));
-		sections.Add(new Section(3,new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0}));
+		sections.Add(new Section(0,0));//bottomleft be origin
+		sections.Add(new Section(1,1));
+		sections.Add(new Section(2,2));
+		sections.Add(new Section(3,3));
 	}
 
 
@@ -170,6 +173,14 @@ public class AxisDrawing: MonoBehaviour {
 		candKernels[5]=new int[]{0,0,0,0,0,1, 0,0,0,0,1,0, 0,0,0,1,0,0, 0,0,1,0,0,0, 0,1,0,0,0,0, 1,0,0,0,0,0};//diagonal\
 		
 	}
+		
+	void InitAxisKernels(){
+		axisKernels=new int[4][];//first index refer to corresponding polygon
+		axisKernels [0]=new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0};
+		axisKernels [1] = new int[]{ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0 };
+		axisKernels [2] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+		axisKernels [3] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+	}
 
 	public int BestMatchCandidate (List<Vector3> path,int panelIndex){
 		int bestMatchCandidateNo=-2;//refer to the correct one
@@ -178,17 +189,15 @@ public class AxisDrawing: MonoBehaviour {
 		int[] pathKernel =new int[36];
 		Pixel2Kernel (path,panelIndex,pathKernel);
 
-		int maxConvolution = Convolution (pathKernel, sections [panelIndex].axisKernel);
+		int k=sections [panelIndex].polygonIndex;
+		Debug.Log (k);
+		int maxConvolution = Convolution (pathKernel, axisKernels[k]);
 		if (maxConvolution >= 3) {
 			bestMatchCandidateNo = -1;
 		}
-		Debug.Log (-1);
-		Debug.Log (maxConvolution);
 
 		for (int i = 0; i < 6; i ++) {
 			tempConvolution = Convolution(pathKernel,candKernels[i]);
-			Debug.Log (i);
-			Debug.Log (tempConvolution);
 			if (tempConvolution > maxConvolution) {
 				maxConvolution = tempConvolution;
 				if (maxConvolution >= 3) {
@@ -219,7 +228,6 @@ public class AxisDrawing: MonoBehaviour {
 			//pathCpy.Add(new Vector3(x,y,0));
 			if (x >= 0 && x<6&& y >= 0&&y<6) {//for cases where mousePos is out of image
 				pathKernel [(int)y * 6 + (int)x] = 1;
-				Debug.Log (y*6+x);
 			}
 		}
 		
@@ -277,10 +285,10 @@ public class AxisDrawing: MonoBehaviour {
 		}
 		//Debug.Log (panelIndex);
 		int bestMatchCandNo=-2;
-		if (PolygonControl.polygons [panelIndex].isKilled == false) {
+		if (PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled == false) {
 			bestMatchCandNo = BestMatchCandidate (path, panelIndex);
 			if (bestMatchCandNo == -1) {
-				PolygonControl.polygons [panelIndex].isKilled = true;
+				PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled = true;
 			} 
 		}
 		return bestMatchCandNo;
