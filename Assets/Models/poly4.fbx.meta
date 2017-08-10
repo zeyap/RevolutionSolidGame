@@ -9,13 +9,22 @@ ModelImporter:
     100002: nurbsToPoly4
     100004: //RootNode
     100006: revolvedSurface4
+    100008: curve5
+    100010: nurbsToPoly5
+    100012: revolvedSurface5
     400000: curve4
     400002: nurbsToPoly4
     400004: //RootNode
     400006: revolvedSurface4
+    400008: curve5
+    400010: nurbsToPoly5
+    400012: revolvedSurface5
     2300000: nurbsToPoly4
+    2300002: nurbsToPoly5
     3300000: nurbsToPoly4
+    3300002: nurbsToPoly5
     4300000: nurbsToPoly4
+    4300002: nurbsToPoly5
     9500000: //RootNode
   materials:
     importMaterials: 1

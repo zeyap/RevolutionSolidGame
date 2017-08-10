@@ -19,8 +19,7 @@ public class AxisDrawing: MonoBehaviour {
 	protected float sectionScale=0.2f;//depend on the gameObject empty
 
 	public static List<Section> sections;
-	protected int[][] candKernels;
-	public int[][] axisKernels;
+
 
 	Text text;
 
@@ -42,13 +41,38 @@ public class AxisDrawing: MonoBehaviour {
 		linePath = new List<Vector3> ();
 	}
 
+	void InitCandidateKernels(){
+		//6x6 kernels * 6
+		Section.candKernels = new int[6][];
+		Section.candKernels[0]=new int[]{1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0};//left edge
+		Section.candKernels[1]=new int[]{0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0};//right edge
+
+		Section.candKernels [2] = new int[]{ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//bottom edge
+		Section.candKernels[3]=new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};//top edge
+
+		Section.candKernels [4] = new int[]{ 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1 };//diagonal/
+		Section.candKernels[5]=new int[]{0,0,0,0,0,1, 0,0,0,0,1,0, 0,0,0,1,0,0, 0,0,1,0,0,0, 0,1,0,0,0,0, 1,0,0,0,0,0};//diagonal\
+
+	}
+
+	void InitAxisKernels(){
+		Section.axisKernels=new int[7][];//first index refer to corresponding polygon
+		Section.axisKernels [0]=new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0};
+		Section.axisKernels [1] = new int[]{ 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0 };
+		Section.axisKernels [2] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+		Section.axisKernels [3] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+		Section.axisKernels [4] = new int[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		Section.axisKernels [5] = new int[]{ 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 };
+		Section.axisKernels [6] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	}
+
 	// Use this for initialization
 	void Start () {
 
 		StartCoroutine("RecordLinePath");
 		/*
 		grade += LeastSquareMethod;*/
-
 	}
 
 	
@@ -153,45 +177,14 @@ public class AxisDrawing: MonoBehaviour {
 	public static Sprite[] polygonSprites=new Sprite[PolygonControl.MaxPolygonNum];
 	void InitSections(){
 		sections = new List<Section> ();//constructor
-		sections.Add(new Section(0,0));//bottomleft be origin
-		sections.Add(new Section(1,1));
-		sections.Add(new Section(2,2));
-		sections.Add(new Section(3,3));
-
-		for (int i = 0; i < PolygonControl.MaxPolygonNum; i++) {
-			polygonSprites [i] = GameObject.Find ("section"+i.ToString()).GetComponent<Image>().sprite;
-			Debug.Log (polygonSprites [i]);
+		for(int i=0;i<PolygonControl.MaxPolygonNum;i++){
+			sections.Add(new Section(i,i));//bottomleft be origin
 		}
-
 	}
 
 
 	//Grading methods
-	void InitCandidateKernels(){
-		 //6x6 kernels * 6
-		candKernels = new int[6][];
-		candKernels[0]=new int[]{1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0};//left edge
-		candKernels[1]=new int[]{0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0};//right edge
 
-		candKernels [2] = new int[]{ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//bottom edge
-		candKernels[3]=new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};//top edge
-
-		candKernels [4] = new int[]{ 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1 };//diagonal/
-		candKernels[5]=new int[]{0,0,0,0,0,1, 0,0,0,0,1,0, 0,0,0,1,0,0, 0,0,1,0,0,0, 0,1,0,0,0,0, 1,0,0,0,0,0};//diagonal\
-		
-	}
-		
-	void InitAxisKernels(){
-		axisKernels=new int[7][];//first index refer to corresponding polygon
-		axisKernels [0]=new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0};
-		axisKernels [1] = new int[]{ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0 };
-		axisKernels [2] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-		axisKernels [3] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-		axisKernels [4] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-		axisKernels [5] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-		axisKernels [6] = new int[]{ 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-
-	}
 
 	public int BestMatchCandidate (List<Vector3> path,int panelIndex){
 		int bestMatchCandidateNo=-2;//refer to the correct one
@@ -201,17 +194,21 @@ public class AxisDrawing: MonoBehaviour {
 		Pixel2Kernel (path,panelIndex,pathKernel);
 
 		int k=sections [panelIndex].polygonIndex;
-		int maxConvolution = Convolution (pathKernel, axisKernels[k]);
-		if (maxConvolution >= 3) {
+		int maxConvolution = Convolution (pathKernel, Section.axisKernels[k]);
+		if (maxConvolution >= 2) {
 			bestMatchCandidateNo = -1;
 		}
+		Debug.Log ("-1");
+		Debug.Log (maxConvolution);
 
 		for (int i = 0; i < 6; i ++) {
-			tempConvolution = Convolution(pathKernel,candKernels[i]);
+			tempConvolution = Convolution(pathKernel,Section.candKernels[i]);
+			Debug.Log (i);
+			Debug.Log (tempConvolution);
 			if (tempConvolution > maxConvolution) {
-				maxConvolution = tempConvolution;
 				if (maxConvolution >= 3) {
-				bestMatchCandidateNo = i;
+					maxConvolution = tempConvolution;
+					bestMatchCandidateNo = i;
 				}
 			}
 		}
@@ -231,8 +228,8 @@ public class AxisDrawing: MonoBehaviour {
 			
 		for (int i = 0; i < path.Count; i++) {
 
-			x =(path[i].x-(sections [panelIndex].image.transform.position.x-wx))/sectionScale+ Section.imgRes/2;
-			y =(path[i].y-(sections [panelIndex].image.transform.position.y-wy))/sectionScale+ Section.imgRes/2;
+			x =(path[i].x-(PolygonControl.activeObjects [panelIndex].image.transform.position.x-wx))/sectionScale+ Section.imgRes/2;
+			y =(path[i].y-(PolygonControl.activeObjects [panelIndex].image.transform.position.y-wy))/sectionScale+ Section.imgRes/2;
 			x = Mathf.FloorToInt(x / 100);
 			y = Mathf.FloorToInt(y / 100);
 			//pathCpy.Add(new Vector3(x,y,0));
@@ -295,10 +292,10 @@ public class AxisDrawing: MonoBehaviour {
 		}
 		//Debug.Log (panelIndex);
 		int bestMatchCandNo=-2;
-		if (PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled == false) {
+		if (PolygonControl.activeObjects [sections[panelIndex].polygonIndex].isKilled == false) {
 			bestMatchCandNo = BestMatchCandidate (path, panelIndex);
 			if (bestMatchCandNo == -1) {
-				PolygonControl.polygons [sections[panelIndex].polygonIndex].isKilled=true;
+				PolygonControl.activeObjects [sections[panelIndex].polygonIndex].isKilled=true;
 			} 
 		}
 		return bestMatchCandNo;

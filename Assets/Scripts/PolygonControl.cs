@@ -4,150 +4,115 @@ using UnityEngine;
 
 public class PolygonControl : MonoBehaviour {
 
-	delegate void PolygonBehaviour(int polygonIndex);
-	PolygonBehaviour polygonBehaviour;
+	delegate void ObjectBehaviour(int objectIndex);
+	ObjectBehaviour objectBehaviour;
+
 	public static List<Polygon> polygons;
+	public static List<ActiveObject> activeObjects;
 	private Vector3 midPos;
 	public static int MaxPolygonNum=7;
 	public static int MaxPanelNum=4;
+
+
+
 	// Use this for initialization
 	void Awake(){
 		midPos = GameObject.Find ("middle").transform.position;
 	}
+
 	void Start () {
 
-		StartCoroutine("AddPolygon");
+		InitPolygon ();
+		ActivateObjects ();
+		StartCoroutine("RecoverObjects");
 
 		//polygonBehaviour += FadeInOrOut;
-		polygonBehaviour += Rotate;
-		polygonBehaviour += Move;
+		objectBehaviour += Rotate;
+		objectBehaviour += Move;
 
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (polygonBehaviour != null) {
-			for (int i = 0; i < polygons.Count; i++) {
-				polygonBehaviour (i);
+		if (objectBehaviour != null) {
+			for (int i = 0; i < activeObjects.Count; i++) {
+				objectBehaviour (i);
 				FadeInOrOut (i);
 			}
 		}
 	}
 		
-	IEnumerator AddPolygon(){
+	void InitPolygon(){
 		polygons = new List<Polygon> ();//constructor
 		for (int i = 0; i < MaxPolygonNum; i++) {
 			if (i < MaxPanelNum) {
-				polygons.Add (new Polygon (i, i, RandomPos ()));
+				polygons.Add (new Polygon (i));
 			} else {
-				polygons.Add (new Polygon (i, -1, RandomPos ()));
+				polygons.Add (new Polygon (i));
 			}
 			//yield return new WaitForSeconds (2);
-			yield return null;
 		}
-
-		StartCoroutine("RecoverPolygon");
 	}
 
-	IEnumerator RecoverPolygon(){
+	void ActivateObjects(){
+		activeObjects = new List<ActiveObject> ();//constructor
+		for (int i = 0; i < MaxPanelNum; i++) {
+			activeObjects.Add (new ActiveObject (i,i));
+			//yield return new WaitForSeconds (2);
+		}
+	}
+
+	IEnumerator RecoverObjects(){
 		while (true) {
-			//count vacant section positions
-			Debug.Log(Section.vacantPanels[0]);
-			Debug.Log(Section.vacantPanels[1]);
-			Debug.Log(Section.vacantPanels[2]);
-			Debug.Log(Section.vacantPanels[3]);
 			//recover & shift sectionPanel-polygon correspondence
 			for(int i=0;i<MaxPanelNum;i++){
-				if (Section.vacantPanels [i] == 1) {
-					//replace with a currently inexistant one
-					int k = Mathf.FloorToInt (Random.value * MaxPolygonNum);
-					for(int j = 0; j < polygons.Count; j++){
-						if (k >= polygons.Count) {
-							k =k % polygons.Count;
+				if (activeObjects [i].isKilled == true) {
+					//replace with one of the polygons(that is currently not on screen
+					int k;
+					while(true){
+						k = Mathf.FloorToInt (Random.value * MaxPolygonNum);
+						int j;
+						for (j = 0; j < MaxPanelNum; j++) {
+							if (activeObjects [j].polygonIndex == k)
+								break;//for
 						}
-						if (polygons [k].isKilled == true) {
-							AxisDrawing.sections [i].polygonIndex = k;
-							polygons [k].Recover(i);
-							AxisDrawing.sections [i].Show ();
-
-							Debug.Log (i);
-							Debug.Log ("+1");
-							break;//(break if found)
-						} else {
-							k++;
+						if (j == MaxPanelNum) {
+							break;//while
 						}
 					}
+					activeObjects [i].polygonIndex = k;
+					activeObjects [i].Refresh ();
+					/*
+					Debug.Log (i);
+					Debug.Log ("+1");*/
 				}
 			}
 			yield return new WaitForSeconds (2);
 
-			/*
-			for (int i = 0; i < polygons.Count; i++) {
-				if (polygons [i].isKilled == true) {
-					polygons [i].gameObject.transform.position=RandomPos();
-
-					//assign to one of vacant section panels
-					int k = Mathf.FloorToInt (Random.value * MaxPanelNum);
-					for (int j = 0; j <MaxPanelNum; j++) {
-						if (k < MaxPanelNum) {
-							if (Section.vacantPanels [k] == 1) {
-								AxisDrawing.sections [k].polygonIndex = i;
-							}
-						} else {
-							k = k % MaxPanelNum;
-						}
-						k++;
-					}
-
-					polygons [i].isKilled = false;
-					AxisDrawing.sections [i].Show ();
-				}
-				yield return new WaitForSeconds (3);
-			}
-			*/
 		}
-	}
-
-	Vector3 RandomPos(){
-		Vector3 newPos;
-		int rand = Mathf.FloorToInt(Random.value*MaxPanelNum);
-		if (rand ==0) {
-			newPos = new Vector3 (10.0f, -5.0f, 0);
-		} else if (rand ==1) {
-			newPos = new Vector3 (-10.0f, -5.0f, 0);
-		} else if (rand ==2) {
-			newPos = new Vector3 (10.0f, 5.0f, 0);
-		} else {
-			newPos = new Vector3 (-10.0f, 5.0f, 0);
-		}
-		return newPos;
 	}
 		
 
-	void Rotate(int polygonIndex){
-		if (polygons [polygonIndex].isKilled == false) {
-			polygons [polygonIndex].gameObject.transform.Rotate (0.5f, 0.5f, 0.5f);
+	void Rotate(int objIndex){
+		if (activeObjects [objIndex].isKilled == false) {
+			activeObjects [objIndex].gameObject.transform.Rotate (0.5f, 0.5f, 0.5f);
 		}
 	}
 
-	void Move(int polygonIndex){
-		if (polygons [polygonIndex].isKilled == false && polygons [polygonIndex].gameObject.transform.position != midPos) {
-			polygons [polygonIndex].gameObject.transform.position=Vector3.MoveTowards(polygons [polygonIndex].gameObject.transform.position,midPos,Time.deltaTime*0.3f);
+	void Move(int objIndex){
+		if (activeObjects [objIndex].isKilled == false && activeObjects [objIndex].gameObject.transform.position != midPos) {
+			activeObjects [objIndex].gameObject.transform.position=Vector3.MoveTowards(activeObjects [objIndex].gameObject.transform.position,midPos,Time.deltaTime*0.3f);
 		}
 	}
 
-	void FadeInOrOut(int polygonIndex){
-		if (!polygons [polygonIndex].isKilled) {
-			polygons [polygonIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",1.0f);
+	void FadeInOrOut(int objIndex){
+		if (!activeObjects [objIndex].isKilled) {
+			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",1.0f);
 		}
 
-		if (polygons [polygonIndex].isKilled) {
-			polygons [polygonIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(polygons [polygonIndex].alphaScale-=0.2f,0.0f,1.0f));
-			if (polygons [polygonIndex].panelIndex != -1) {
-				AxisDrawing.sections [polygons [polygonIndex].panelIndex].Hide ();
-				Debug.Log ("hide");
-				Debug.Log (polygons [polygonIndex].panelIndex);
-			}
+		if (activeObjects [objIndex].isKilled) {
+			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(activeObjects [objIndex].alphaScale-=0.2f,0.0f,1.0f));
+			activeObjects [objIndex].gameObject.transform.position = new Vector3 (-100,-100,0);
 		}
 	}
 		
