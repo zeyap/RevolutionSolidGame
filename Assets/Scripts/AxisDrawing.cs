@@ -20,8 +20,9 @@ public class AxisDrawing: MonoBehaviour {
 
 	public static List<Section> sections;
 
-
 	Text text;
+	public static int hit;
+	Text totalHit;
 
 	/*
 	public delegate int Grade(List<Vector3> path);
@@ -30,6 +31,8 @@ public class AxisDrawing: MonoBehaviour {
 
 	void Awake(){
 		text = GameObject.Find ("Text").GetComponent<Text> ();
+		totalHit=GameObject.Find ("totalHit").GetComponent<Text> ();
+		hit = 0;
 
 		wx = Camera.main.pixelRect.center.x;
 		wy = Camera.main.pixelRect.center.y;
@@ -56,7 +59,7 @@ public class AxisDrawing: MonoBehaviour {
 	}
 
 	void InitAxisKernels(){
-		Section.axisKernels=new int[7][];//first index refer to corresponding polygon
+		Section.axisKernels=new int[12][];//first index refer to corresponding polygon
 		Section.axisKernels [0]=new int[]{0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0};
 		Section.axisKernels [1] = new int[]{ 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0 };
 		Section.axisKernels [2] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
@@ -64,6 +67,12 @@ public class AxisDrawing: MonoBehaviour {
 		Section.axisKernels [4] = new int[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		Section.axisKernels [5] = new int[]{ 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 };
 		Section.axisKernels [6] = new int[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+		Section.axisKernels [7]=new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1};
+		Section.axisKernels [8]=new int[]{0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0};
+		Section.axisKernels [9]=new int[]{0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0};
+		Section.axisKernels [10]=new int[]{1,0,1,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0};
+		Section.axisKernels [11]=new int[]{0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1,1,0};
 
 	}
 
@@ -193,9 +202,9 @@ public class AxisDrawing: MonoBehaviour {
 		int[] pathKernel =new int[36];
 		Pixel2Kernel (path,panelIndex,pathKernel);
 
-		int k=sections [panelIndex].polygonIndex;
+		int k=PolygonControl.activeObjects[panelIndex].polygonIndex;
 		int maxConvolution = Convolution (pathKernel, Section.axisKernels[k]);
-		if (maxConvolution >= 2) {
+		if (maxConvolution >= 3) {
 			bestMatchCandidateNo = -1;
 		}
 		Debug.Log ("-1");
@@ -221,7 +230,6 @@ public class AxisDrawing: MonoBehaviour {
 		}
 
 		float x, y;
-		//List<Vector3> pathCpy = new List<Vector3>(path.Count);
 
 		//path coordinate is in pixel relative to screen center
 		//transfrom into 550x550 resolution
@@ -232,9 +240,10 @@ public class AxisDrawing: MonoBehaviour {
 			y =(path[i].y-(PolygonControl.activeObjects [panelIndex].image.transform.position.y-wy))/sectionScale+ Section.imgRes/2;
 			x = Mathf.FloorToInt(x / 100);
 			y = Mathf.FloorToInt(y / 100);
-			//pathCpy.Add(new Vector3(x,y,0));
+
 			if (x >= 0 && x<6&& y >= 0&&y<6) {//for cases where mousePos is out of image
-				pathKernel [(int)y * 6 + (int)x] = 1;
+				pathKernel [(int)(y * 6 + x)] = 1;
+				Debug.Log (y * 6 + x);
 			}
 		}
 		
@@ -296,6 +305,9 @@ public class AxisDrawing: MonoBehaviour {
 			bestMatchCandNo = BestMatchCandidate (path, panelIndex);
 			if (bestMatchCandNo == -1) {
 				PolygonControl.activeObjects [sections[panelIndex].polygonIndex].isKilled=true;
+				PolygonControl.activeObjects [sections[panelIndex].polygonIndex].image.gameObject.SetActive (false);
+				hit++;
+				totalHit.text="Total Hits: "+ hit.ToString();
 			} 
 		}
 		return bestMatchCandNo;

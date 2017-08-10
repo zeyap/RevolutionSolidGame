@@ -10,10 +10,8 @@ public class PolygonControl : MonoBehaviour {
 	public static List<Polygon> polygons;
 	public static List<ActiveObject> activeObjects;
 	private Vector3 midPos;
-	public static int MaxPolygonNum=7;
+	public static int MaxPolygonNum=12;
 	public static int MaxPanelNum=4;
-
-
 
 	// Use this for initialization
 	void Awake(){
@@ -86,6 +84,7 @@ public class PolygonControl : MonoBehaviour {
 					Debug.Log (i);
 					Debug.Log ("+1");*/
 				}
+				yield return new WaitForSeconds (2);
 			}
 			yield return new WaitForSeconds (2);
 
@@ -101,13 +100,13 @@ public class PolygonControl : MonoBehaviour {
 
 	void Move(int objIndex){
 		if (activeObjects [objIndex].isKilled == false && activeObjects [objIndex].gameObject.transform.position != midPos) {
-			activeObjects [objIndex].gameObject.transform.position=Vector3.MoveTowards(activeObjects [objIndex].gameObject.transform.position,midPos,Time.deltaTime*0.3f);
+			activeObjects [objIndex].gameObject.transform.position=Vector3.MoveTowards(activeObjects [objIndex].gameObject.transform.position,midPos,Time.deltaTime*activeObjects[objIndex].speed);
 		}
 	}
 
 	void FadeInOrOut(int objIndex){
 		if (!activeObjects [objIndex].isKilled) {
-			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",1.0f);
+			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(activeObjects [objIndex].alphaScale+=0.2f,0.0f,1.0f));
 		}
 
 		if (activeObjects [objIndex].isKilled) {
