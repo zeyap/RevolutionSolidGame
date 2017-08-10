@@ -207,13 +207,18 @@ public class AxisDrawing: MonoBehaviour {
 		if (maxConvolution >= 3) {
 			bestMatchCandidateNo = -1;
 		}
+		/*
 		Debug.Log ("-1");
 		Debug.Log (maxConvolution);
+		*/
 
 		for (int i = 0; i < 6; i ++) {
 			tempConvolution = Convolution(pathKernel,Section.candKernels[i]);
-			Debug.Log (i);
+			/*
+Debug.Log (i);
 			Debug.Log (tempConvolution);
+			*/
+
 			if (tempConvolution > maxConvolution) {
 				if (maxConvolution >= 3) {
 					maxConvolution = tempConvolution;

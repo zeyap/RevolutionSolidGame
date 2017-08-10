@@ -5,7 +5,10 @@ using UnityEngine;
 public class Collision : MonoBehaviour {
 
 	// Use this for initialization
+	/*
 	void OnCollisionEnter (Collision col) {
 		
 	}
+	*/
+
 }

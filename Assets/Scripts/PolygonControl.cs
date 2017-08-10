@@ -106,11 +106,11 @@ public class PolygonControl : MonoBehaviour {
 
 	void FadeInOrOut(int objIndex){
 		if (!activeObjects [objIndex].isKilled) {
-			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(activeObjects [objIndex].alphaScale+=0.2f,0.0f,1.0f));
+			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(activeObjects [objIndex].alphaScale+=0.2f,0.0f,0.6f));
 		}
 
 		if (activeObjects [objIndex].isKilled) {
-			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(activeObjects [objIndex].alphaScale-=0.2f,0.0f,1.0f));
+			activeObjects [objIndex].gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_AlphaScale",Mathf.Clamp(activeObjects [objIndex].alphaScale-=0.2f,0.0f,0.6f));
 			activeObjects [objIndex].gameObject.transform.position = new Vector3 (-100,-100,0);
 		}
 	}
