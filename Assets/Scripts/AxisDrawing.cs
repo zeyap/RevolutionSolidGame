@@ -220,7 +220,7 @@ Debug.Log (i);
 			*/
 
 			if (tempConvolution > maxConvolution) {
-				if (maxConvolution >= 3) {
+				if (maxConvolution >= 1) {
 					maxConvolution = tempConvolution;
 					bestMatchCandidateNo = i;
 				}
